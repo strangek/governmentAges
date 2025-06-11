@@ -1,0 +1,5 @@
+body { font-family: Arial, sans-serif; margin:20px; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding: 8px; border:1px solid #ccc; text-align:left; }
+th { background:#f4f4f4; }
+img { border-radius:4px; }
