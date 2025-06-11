@@ -6,22 +6,34 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <h1>🇺🇸 Federal Gov Ages</h1>
-  <table id="age-table">
-    <thead>
-      <tr>
-        <th>Photo</th>
-        <th>Name</th>
-        <th>Role</th>
-        <th>State</th>
-        <th>Party</th>
-        <th>Birth Date</th>
-        <th>Age</th>
-        <th>Age Appropriate</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <script src="js/app.js"></script>
+
+<div id="filters">
+  <label>
+    Party:
+    <select id="filter-party">
+      <option value="">All</option>
+      <option value="Democrat">Democrat</option>
+      <option value="Republican">Republican</option>
+      <option value="Independent">Independent</option>
+    </select>
+  </label>
+
+  <label>
+    State:
+    <select id="filter-state">
+      <option value="">All</option>
+      <!-- we'll populate options dynamically -->
+    </select>
+  </label>
+</div>
+
+<h2>U.S. Senate</h2>
+<div id="senate-container" class="card-container"></div>
+
+<h2>U.S. House of Representatives</h2>
+<div id="house-container" class="card-container"></div>
+
+<script src="js/app.js"></script>
+
 </body>
 </html>
