@@ -11,7 +11,7 @@ async function fetchCongressMembers() {
       state: latestTerm.state,
       party: latestTerm.party, // Now correctly pulled from latest term
       birthDate: member.bio.birthday,
-      //photoUrl: `https://theunitedstates.io/images/congress/225x275/${member.id.bioguide}.jpg`
+      photoUrl: `https://unitedstates.github.io/images/congress/225x275/${member.id.bioguide}.jpg`
     };
   });
 }
@@ -37,7 +37,7 @@ function buildTable(members) {
     const age = calculateAge(m.birthDate);
     const row = document.createElement('tr');
     row.innerHTML = `
-      <!-- <td><img src="${m.photoUrl}" alt="${m.name}" width="60"></td> -->
+      <td><img src="${m.photoUrl}" alt="${m.name}" width="60"></td>
       <td>${m.name}</td>
       <td>${m.role}</td>
       <td>${m.state}</td>
