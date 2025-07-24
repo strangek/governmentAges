@@ -66,10 +66,10 @@ async function fetchCongressMembers() {
     const otherChamberLabel = otherChamber === 'rep' ? 'House' : 'Senate';
 
     const termCount = currentTerms.length;
-    let termSummary = `${termCount} ${currentChamberLabel} Term${termCount !== 1 ? 's' : ''}, ends ${latestTermEnd}`;
+    let termSummary = `${termCount} Term${termCount !== 1 ? 's' : ''} in the ${currentChamberLabel}`;
     if (otherTerms.length) {
       const otherYears = computeUniqueServiceYears(otherTerms);
-      termSummary += `<br><small>Previously served ${otherTerms.length} ${otherChamberLabel} Term${otherTerms.length !== 1 ? 's' : ''} (${formatYearsLabel(otherYears)})</small>`;
+      termSummary += `<br><small>Previously served ${otherTerms.length} Term${otherTerms.length !== 1 ? 's' : ''} in the ${otherChamberLabel} (${formatYearsLabel(otherYears)})</small>`;
     }
 
     let serviceBreakdown = [];
@@ -87,7 +87,8 @@ async function fetchCongressMembers() {
       serviceLength: serviceBreakdown.join(', '),
       servingSince: `${formatDate(firstTermStart)}`,
       termEnding: `${latestTermEnd}`,
-      totalYears
+      totalYears,
+      termCount: termCount
     };
   });
 
@@ -118,20 +119,92 @@ function calculateAge(birthDateStr) {
   return age;
 }
 
+function ageOn(dateStr, birthDateStr) {
+  const date = new Date(dateStr);
+  const birth = new Date(birthDateStr);
+  let age = date.getFullYear() - birth.getFullYear();
+  const m = date.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && date.getDate() < birth.getDate())) age--;
+  return age;
+}
+
 function renderCards() {
   const partyFilter = document.getElementById('filter-party').value;
   const stateFilter = document.getElementById('filter-state').value;
+  const ageFilter = document.getElementById('filter-age').value;
 
-  const filtered = allMembers.filter(m =>
-    (!partyFilter || m.party === partyFilter) &&
-    (!stateFilter || m.state === stateFilter)
-  );
+  const filtered = allMembers.filter(m => {
+    const age = calculateAge(m.birthDate);
+
+    const partyMatch = !partyFilter || m.party === partyFilter;
+    const stateMatch = !stateFilter || m.state === stateFilter;
+    const ageMatch =
+      !ageFilter ||
+      (ageFilter === 'under-50' && age < 50) ||
+      (ageFilter === '50-65' && age >= 50 && age <= 65) ||
+      (ageFilter === 'over-65' && age > 65);
+
+    return partyMatch && stateMatch && ageMatch;
+  });
 
   const senate = filtered.filter(m => m.role === 'Sen.');
   const house = filtered.filter(m => m.role === 'Rep.');
 
   buildCards(senate, 'senate-container');
   buildCards(house, 'house-container');
+}
+
+function renderStats() {
+  const senate = allMembers.filter(m => m.role === 'Sen.');
+  const house = allMembers.filter(m => m.role === 'Rep.');
+
+  const getPartyStats = (group) => {
+    const over65 = group.filter(m => calculateAge(m.birthDate) > 65);
+    const rep = group.filter(m => m.party === 'Republican');
+    const dem = group.filter(m => m.party === 'Democrat');
+
+    const rep65 = rep.filter(m => calculateAge(m.birthDate) > 65).length;
+    const dem65 = dem.filter(m => calculateAge(m.birthDate) > 65).length;
+
+    return {
+      totalOver65: over65.length,
+      total: group.length,
+      repPct: ((rep65 / rep.length) * 100 || 0).toFixed(1),
+      demPct: ((dem65 / dem.length) * 100 || 0).toFixed(1),
+      pct65: ((over65.length / group.length) * 100 || 0).toFixed(1)
+    };
+  };
+
+  const getTermStats = (group) => {
+    return ((group.filter(m => m.termCount > 2).length / group.length) * 100).toFixed(1);
+  };
+
+  const senStats = getPartyStats(senate);
+  const repStats = getPartyStats(house);
+
+  const senTerms = getTermStats(senate);
+  const repTerms = getTermStats(house);
+
+  const statsEl = document.getElementById('congress-stats');
+  statsEl.innerHTML = `
+    <h3>Congressional Age & Tenure Stats</h3>
+    <ul>
+      <li>👴🏼 ${senStats.pct65}% of Senators are over 65
+        <ul>
+          <li>🔴 ${senStats.repPct}% of Republican Senators</li>
+          <li>🔵 ${senStats.demPct}% of Democrat Senators</li>
+        </ul>
+      </li>
+      <li>👴🏼 ${repStats.pct65}% of Representatives are over 65
+        <ul>
+          <li>🔴 ${repStats.repPct}% of Republican Representatives</li>
+          <li>🔵 ${repStats.demPct}% of Democrat Representatives</li>
+        </ul>
+      </li>
+      <li>${senTerms}% of Senators have served more than 2 terms</li>
+      <li>${repTerms}% of Representatives have served more than 2 terms</li>
+    </ul>
+  `;
 }
 
 function buildCards(members, containerId) {
@@ -141,6 +214,16 @@ function buildCards(members, containerId) {
 
   for (const m of members) {
     const age = calculateAge(m.birthDate);
+    const tooOldNow = age > 65;
+    const ageAtTermEnd = ageOn(m.termEnding, m.birthDate);
+    const tooOldThen = ageAtTermEnd >= 64;
+
+    const statusMsg = tooOldNow
+      ? '⚰️ <strong>Too Old</strong>'
+      : tooOldThen
+      ? '⚠️ <strong>Will Be Too Old at Term End</strong>'
+      : '👍🏻 <strong>Fit For Office</strong>';
+
     const partyClass = m.party === 'Democrat' ? 'democrat'
                      : m.party === 'Republican' ? 'republican'
                      : 'independent';
@@ -162,7 +245,7 @@ function buildCards(members, containerId) {
         </div>
       </div>
       <div class="card-bottom">
-        ${age > 65 ? '<div>‼️ <strong>Too Old</strong></div>' : '<div>👍🏻 <strong>OK For Now</strong></div>'}
+        <div>${statusMsg}</div>
         <div>${m.termSummary}</div>
       </div>
     `;
@@ -171,6 +254,10 @@ function buildCards(members, containerId) {
 }
 
 document.addEventListener('DOMContentLoaded', fetchCongressMembers);
+document.addEventListener('DOMContentLoaded', () => {
+  fetchCongressMembers().then(renderStats);
+});
 
 document.getElementById('filter-party').addEventListener('change', renderCards);
 document.getElementById('filter-state').addEventListener('change', renderCards);
+document.getElementById('filter-age').addEventListener('change', renderCards);
