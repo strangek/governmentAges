@@ -6,8 +6,12 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-
+<h1>Congressional Ages</h1>
+<p>America isn't a nursing home, but you wouldn't know it from looking at Congress. We've got people making laws who need help logging into Zoom. Change doesn't come from the same hands clutching power since the Cold War. If we can't have term limits, then let's go for age limits.</p>
+<p>Let this simple guide help you before we need a defibrillator at the State of the Union.</p>
+<div id="congress-stats" class="stats-box"></div>
 <div id="filters">
+  <p><strong>Filters</strong></p>
   <label>
     Party:
     <select id="filter-party">
@@ -25,6 +29,14 @@
       <!-- we'll populate options dynamically -->
     </select>
   </label>
+
+  <label for="filter-age">Age:</label>
+  <select id="filter-age">
+    <option value="">All</option>
+    <option value="under-50">Under 50</option>
+    <option value="50-65">50 to 65</option>
+    <option value="over-65">Over 65</option>
+  </select>
 </div>
 
 <h2>U.S. Senate</h2>
