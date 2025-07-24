@@ -245,7 +245,7 @@ function buildCards(members, containerId) {
         </div>
       </div>
       <div class="card-bottom">
-        <div>${statusMsg}</div>
+        <h3>${statusMsg}</h3>
         <div>${m.termSummary}</div>
       </div>
     `;
