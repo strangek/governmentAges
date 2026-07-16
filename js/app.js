@@ -142,7 +142,9 @@ function renderCards() {
       !ageFilter ||
       (ageFilter === 'under-50' && age < 50) ||
       (ageFilter === '50-65' && age >= 50 && age <= 65) ||
-      (ageFilter === 'over-65' && age > 65);
+      (ageFilter === 'over-65' && age > 65) ||
+      (ageFilter === 'over-70' && age > 70) ||
+      (ageFilter === 'over-80' && age > 80);
 
     return partyMatch && stateMatch && ageMatch;
   });
